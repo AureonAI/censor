@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CENSOR — verifica cada citação jurídica de uma IA contra a fonte oficial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --basalto:#12161c; --basalto-2:#1a2029; --basalto-3:#232b37;
+    --marmore:#eae6dd; --marmore-dim:#a7a397;
+    --verde:#4a9068; --verde-fundo:#16241c;
+    --rubro:#c04a4a; --rubro-fundo:#271416;
+    --ambar:#c99a3f; --ambar-fundo:#241d12;
+    --bronze:#8a765a;
+    --linha:rgba(234,230,221,.09);
+    --serif:"Newsreader",Georgia,serif;
+    --sans:"Inter",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  body{background:var(--basalto);color:var(--marmore);font-family:var(--sans);
+    line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 28px}
+  a{color:inherit;text-decoration:none}
+
+  .top{display:flex;align-items:center;justify-content:space-between;
+    padding:24px 0;border-bottom:1px solid var(--linha)}
+  .marca{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:.02em}
+  .marca span{color:var(--bronze)}
+  .top nav a{color:var(--marmore-dim);font-size:14px;margin-left:26px;transition:color .2s}
+  .top nav a:hover{color:var(--marmore)}
+
+  /* hero */
+  .hero{padding:56px 0 40px}
+  .hero h1{font-family:var(--serif);font-weight:500;font-size:clamp(34px,5.2vw,58px);
+    line-height:1.08;max-width:16ch;letter-spacing:-.01em}
+  .hero .lede{margin-top:22px;max-width:56ch;font-size:18px;color:var(--marmore-dim)}
+
+  /* veredito vivo */
+  .palco{margin-top:44px;background:var(--basalto-2);border:1px solid var(--linha);
+    border-radius:10px;overflow:hidden}
+  .palco .barra{display:flex;align-items:center;gap:8px;padding:12px 18px;
+    border-bottom:1px solid var(--linha);font-size:13px;color:var(--marmore-dim)}
+  .dot{width:9px;height:9px;border-radius:50%}
+  .citacao{padding:24px 22px;font-family:var(--serif);font-size:18px;line-height:1.55}
+  .veredito{display:flex;align-items:flex-start;gap:14px;padding:18px 22px;
+    border-top:1px solid var(--linha)}
+  .selo{flex-shrink:0;font-family:var(--sans);font-weight:600;font-size:12px;
+    letter-spacing:.08em;padding:6px 12px;border-radius:5px}
+  .selo.ok{color:var(--verde);background:var(--verde-fundo);border:1px solid var(--verde)}
+  .selo.no{color:var(--rubro);background:var(--rubro-fundo);border:1px solid var(--rubro)}
+  .motivo{font-size:15px;color:var(--marmore-dim);padding-top:3px}
+  .motivo b{color:var(--marmore);font-weight:600}
+  .grifo-no{color:var(--rubro);font-style:italic}
+  .grifo-ok{color:var(--verde);font-style:italic}
+
+  /* faixa de problema */
+  .faixa{border-top:1px solid var(--linha);border-bottom:1px solid var(--linha);
+    background:var(--basalto-2);margin-top:40px}
+  .faixa .wrap{padding:40px 28px}
+  .faixa p{font-family:var(--serif);font-size:clamp(19px,2.6vw,26px);
+    line-height:1.4;max-width:44ch}
+  .faixa .fonte{margin-top:12px;font-family:var(--sans);font-size:13px;color:var(--marmore-dim)}
+
+  /* camadas */
+  section{padding:48px 0}
+  .rotulo{font-family:var(--sans);font-size:13px;color:var(--bronze);
+    font-weight:600;margin-bottom:8px}
+  h2{font-family:var(--serif);font-weight:500;font-size:clamp(26px,3.4vw,36px);
+    margin-bottom:28px;letter-spacing:-.01em}
+  .camadas{display:grid;gap:0;border:1px solid var(--linha);border-radius:10px;overflow:hidden}
+  .camada{display:grid;grid-template-columns:150px 1fr;gap:20px;padding:20px 22px;
+    border-bottom:1px solid var(--linha)}
+  .camada:last-child{border-bottom:0}
+  .camada .nome{font-family:var(--serif);font-size:19px;color:var(--marmore)}
+  .camada .desc{font-size:15px;color:var(--marmore-dim)}
+  .camada .desc b{color:var(--marmore);font-weight:600}
+
+  /* medicao */
+  .medicao{background:var(--basalto-2);border:1px solid var(--linha);border-radius:10px;
+    padding:34px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:28px}
+  .metrica .n{font-family:var(--serif);font-size:40px;font-weight:500;line-height:1}
+  .metrica .n.verde{color:var(--verde)}
+  .metrica .rot{font-size:13px;color:var(--marmore-dim);margin-top:8px;max-width:22ch}
+  .nota{margin-top:22px;font-size:14px;color:var(--marmore-dim);max-width:64ch;line-height:1.65}
+
+  /* honestidade */
+  .honesto{border:1px solid var(--ambar);background:var(--ambar-fundo);
+    border-radius:10px;padding:26px 30px;margin-top:30px}
+  .honesto .rotulo{color:var(--ambar)}
+  .honesto ul{list-style:none;margin-top:6px}
+  .honesto li{font-size:15px;color:var(--marmore);padding:6px 0 6px 20px;position:relative}
+  .honesto li::before{content:"—";position:absolute;left:0;color:var(--ambar)}
+
+  /* cta */
+  .cta{text-align:center;padding:52px 0 64px}
+  .cta h2{max-width:20ch;margin:0 auto 26px}
+  .botao{display:inline-block;font-family:var(--sans);font-weight:600;font-size:16px;
+    padding:14px 30px;border-radius:7px;background:var(--marmore);color:var(--basalto);
+    transition:transform .15s,background .2s}
+  .botao:hover{background:#fff;transform:translateY(-1px)}
+  .botao.contorno{background:transparent;color:var(--marmore);border:1px solid var(--bronze);margin-left:12px}
+  .botao.contorno:hover{background:var(--basalto-3)}
+
+  footer{border-top:1px solid var(--linha);padding:30px 0;color:var(--marmore-dim);font-size:14px;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+
+  @media (max-width:640px){
+    .camada{grid-template-columns:1fr;gap:6px}
+    .botao.contorno{margin-left:0;margin-top:12px;display:block}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="marca">CENSOR<span>.</span></div>
+    <nav>
+      <a href="#como">Como funciona</a>
+      <a href="#prova">Prova</a>
+      <a href="https://github.com/AureonAI/censor">Código</a>
+    </nav>
+  </div>
+
+  <div class="hero">
+    <h1>Toda citação que uma IA escreve, conferida contra a decisão real.</h1>
+    <p class="lede">Modelos de linguagem inventam jurisprudência com fluência perfeita. O CENSOR baixa o inteiro teor oficial do tribunal e verifica cada citação antes de ela chegar ao magistrado — e diz por quê.</p>
+
+    <div class="palco">
+      <div class="barra">
+        <span class="dot" style="background:var(--verde)"></span>
+        <span class="dot" style="background:var(--ambar)"></span>
+        <span class="dot" style="background:var(--rubro)"></span>
+        <span style="margin-left:6px">minuta submetida ao CENSOR</span>
+      </div>
+      <div class="citacao">
+        "Conforme o REsp 2.239.890/SC, Rel. Min. Raul Araújo, o atraso excessivo na entrega do imóvel <span class="grifo-ok">configura dano moral indenizável</span>."
+      </div>
+      <div class="veredito">
+        <span class="selo ok">CONFIRMADA</span>
+        <span class="motivo">O trecho consta do inteiro teor oficial. Identificadores conferem; resultado coerente. <b>13 de 15 âncoras presentes.</b></span>
+      </div>
+      <div class="citacao" style="border-top:1px solid var(--linha)">
+        "Conforme o REsp 2.239.890/SC, o atraso foi analisado e o agravo interno foi <span class="grifo-no">provido</span>, reformando-se a decisão."
+      </div>
+      <div class="veredito">
+        <span class="selo no">FABRICADA</span>
+        <span class="motivo">Polaridade invertida: a decisão foi <b>desprovida</b>, a citação alega <b>provida</b>. Resultado oposto ao acórdão real.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="faixa">
+  <div class="wrap">
+    <p>Advogados já foram sancionados por citar jurisprudência que a IA inventou.</p>
+    <p class="fonte">Os geradores de texto jurídico não verificam a própria saída. O CENSOR verifica a de qualquer um deles.</p>
+  </div>
+</div>
+
+<div class="wrap">
+  <section id="como">
+    <div class="rotulo">Quatro exames, em sequência</div>
+    <h2>Uma citação só passa se sobreviver a todos.</h2>
+    <div class="camadas">
+      <div class="camada">
+        <div class="nome">Existência</div>
+        <div class="desc">O número de processo e o relator <b>existem</b> na fonte oficial? Se divergem, recusa.</div>
+      </div>
+      <div class="camada">
+        <div class="nome">Fidelidade</div>
+        <div class="desc">O trecho citado é <b>fiel ao acórdão</b>? Mede a presença dos termos de conteúdo no inteiro teor — aceita paráfrase, barra invenção.</div>
+      </div>
+      <div class="camada">
+        <div class="nome">Polaridade</div>
+        <div class="desc">O resultado citado é o <b>real</b>? Se a decisão negou e a citação afirma que deu provimento, o sentido foi invertido. Recusa.</div>
+      </div>
+      <div class="camada">
+        <div class="nome">Números</div>
+        <div class="desc">Valores, datas e prazos <b>conferem</b> com o que consta do acórdão? Um valor fabricado não passa.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="prova">
+    <div class="rotulo">Medido, não afirmado</div>
+    <h2>O número vem da evidência.</h2>
+    <div class="medicao">
+      <div class="metrica"><div class="n">99,0%</div><div class="rot">acurácia em 104 casos de teste</div></div>
+      <div class="metrica"><div class="n verde">0,0%</div><div class="rot">falso-positivo — nenhuma fabricação aprovada em 71 fraudes</div></div>
+      <div class="metrica"><div class="n">94,8–99,8%</div><div class="rot">intervalo de confiança de 95% (Wilson)</div></div>
+    </div>
+    <p class="nota">Avaliação com pré-registro: o critério de sucesso e o falsificador foram declarados antes de rodar o experimento. O limiar foi calibrado num conjunto separado do de teste. O método está aberto no repositório.</p>
+
+    <div class="honesto">
+      <div class="rotulo">O que ainda não foi provado</div>
+      <ul>
+        <li>Casos derivados de 3 acórdãos do STJ, mesma matéria — amostras correlacionadas, intervalo otimista.</li>
+        <li>As fraudes testadas são mecânicas. Fraude semântica sofisticada não foi medida.</li>
+        <li>Um só tribunal. STF e TST têm estrutura diferente e não foram testados.</li>
+        <li>Nenhum avaliador externo usou o sistema. Enquanto isso não acontece, é prova de conceito — não produto.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<div class="cta">
+  <div class="wrap">
+    <h2>O código, a medição e os limites — tudo à vista.</h2>
+    <a class="botao" href="https://github.com/AureonAI/censor">Ver no GitHub</a>
+    <a class="botao contorno" href="https://github.com/AureonAI/censor/blob/main/EVIDENCE.md">Ler a evidência</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <footer>
+    <span>CENSOR — Aureon AI · licença MIT</span>
+    <span>Fonte primária: inteiro teor oficial do STJ</span>
+  </footer>
+</div>
+</body>
+</html>
