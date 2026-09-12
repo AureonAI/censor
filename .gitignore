@@ -1,0 +1,25 @@
+# Segredos -- NUNCA versionar
+token.txt
+*.token
+.env
+*.key
+*.pem
+credentials*
+
+# Acervo de decisoes (conteudo de terceiro; baixado sob demanda)
+acervo/
+*.pdf
+
+# Artefatos de execucao
+__pycache__/
+*.pyc
+*.pyo
+saida.txt
+RESULTADO.txt
+SONDA.txt
+conjunto_avaliacao.json
+
+# Ambiente local
+.venv/
+venv/
+*.log
